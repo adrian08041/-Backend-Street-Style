@@ -11,3 +11,4 @@ export const getBanners: RequestHandler = async (req, res) => {
 
   res.json({ error: null, banners: bannersWithAbsoluteUrl });
 };
+

@@ -5,12 +5,15 @@ import { getAbsoluteImageUrl } from "../utils/get-absolute-image-url";
 import {
   getAllProducts,
   getProduct,
+  getProductsFromSameCategory,
   incrementProductView,
 } from "../services/product";
 
 import { getOneProductSchema } from "../schemas/get-one-product-schema";
 import { get } from "http";
 import { getCategory } from "../services/category";
+import { getRelatedProductsSchema } from "../schemas/get-related-product-schema";
+import { getRelatedProductsQuerySchema } from "../schemas/get-one-product-query-schema";
 
 export const getProducts: RequestHandler = async (req, res) => {
   const parseResult = getProductSchema.safeParse(req.query);
@@ -48,7 +51,7 @@ export const getOneProduct: RequestHandler = async (req, res) => {
 
   // getting product
 
-  const product = await getProduct(parseInt(id ? id : ""));
+  const product = await getProduct(parseInt(id));
   if (!product) {
     res.json({ error: "Produto não encontrado" });
     return;
@@ -72,5 +75,30 @@ export const getOneProduct: RequestHandler = async (req, res) => {
     product: productsWithAbsoluteImages,
     category,
   });
+};
+
+export const getRelatedProducts: RequestHandler = async (req, res) => {
+  const paramsResult = getRelatedProductsSchema.safeParse(req.params);
+  const queryResult = getRelatedProductsQuerySchema.safeParse(req.query);
+
+  if (!paramsResult.success || !queryResult.success) {
+    res.status(400).json({ error: "Parâmetros inválidos" });
+    return;
+  }
+  const { id } = paramsResult.data;
+  const { limit } = queryResult.data;
+
+  const products = await getProductsFromSameCategory(
+    parseInt(id),
+    limit ? parseInt(limit) : undefined
+  );
+
+  const productsWithAbsoluteUrl = products.map((product) => ({
+    ...product,
+    image: product.images ? getAbsoluteImageUrl(product.images) : null,
+    liked: false, // TODO: Once have like  funcionallity, fecth this.
+  }));
+
+  res.json({ error: null, products: productsWithAbsoluteUrl });
 };
 

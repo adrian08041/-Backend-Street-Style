@@ -15,3 +15,5 @@ routes.get("/products", productController.getProducts);
 
 routes.get("/product/:id", productController.getOneProduct);
 
+routes.get("/product/:id/related", productController.getRelatedProducts);
+

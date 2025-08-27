@@ -25,7 +25,31 @@ export const getAllProducts = async (filters: ProductFilters) => {
 
   // organize Metadata
 
-  let where = {};
+  let where: any = {};
+  if (filters.metadata && typeof filters.metadata === "object") {
+    let metaFilters = [];
+    for (let categoryMetadataId in filters.metadata) {
+      const value = filters.metadata[categoryMetadataId];
+      if (typeof value !== "string") continue;
+      const valueIds = value
+        .split("|")
+        .map((v) => v.trim())
+        .filter(Boolean);
+      if (valueIds.length === 0) continue;
+
+      metaFilters.push({
+        metadata: {
+          some: {
+            categoryMetadataId,
+            metadataValueId: { in: valueIds },
+          },
+        },
+      });
+    }
+    if (metaFilters.length > 0) {
+      where.AND = metaFilters;
+    }
+  }
 
   const products = await prisma.product.findMany({
     select: {
@@ -47,5 +71,40 @@ export const getAllProducts = async (filters: ProductFilters) => {
     image: product.images[0] ? `media/products/${product.images[0].url}` : null,
     images: undefined,
   }));
+};
+
+export const getProduct = async (id: number) => {
+  const product = await prisma.product.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      label: true,
+      price: true,
+      description: true,
+      categoryId: true,
+      images: true,
+    },
+  });
+
+  if (!product) return null;
+
+  return {
+    ...product,
+    images:
+      product.images.length > 0
+        ? product.images.map((img) => `media/products/${img.url}`)
+        : [],
+  };
+};
+
+export const incrementProductView = async (id: number) => {
+  await prisma.product.update({
+    where: { id },
+    data: {
+      viewsCount: {
+        increment: 1,
+      },
+    },
+  });
 };
 

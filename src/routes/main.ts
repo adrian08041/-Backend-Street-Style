@@ -6,6 +6,9 @@ import * as categoryController from "../controllers/category";
 import * as cartController from "../controllers/cart";
 import * as userController from "../controllers/user";
 import { authMiddleware } from "../middleware/auth";
+
+import * as webhookController from "../controllers/webhook";
+import * as orderController from "../controllers/order";
 export const routes = Router();
 
 routes.get("/ping", (req, res) => {
@@ -36,4 +39,14 @@ routes.post("/user/login", userController.login);
 routes.post("/user/addresses", authMiddleware, userController.addAddress);
 
 routes.get("/user/addresses", authMiddleware, userController.getAddresses);
+
+routes.post("/cart/finish", authMiddleware, cartController.finish);
+
+routes.post("/webhook/stripe", webhookController.stripe);
+
+routes.get("/orders/session", orderController.getOrderBySessionId);
+
+routes.get("/orders", authMiddleware, orderController.listOrders);
+
+routes.get("/orders/:id", authMiddleware, orderController.getOrder);
 

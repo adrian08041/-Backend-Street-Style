@@ -5,17 +5,21 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch  src/server.ts"
+    "dev": "tsx watch  src/server.ts",
+    "db:seed": "prisma db seed"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@prisma/client": "^6.14.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "stripe": "^18.4.0",
+    "stripe": "^18.5.0",
     "uuid": "^11.1.0",
     "zod": "^4.1.1"
   },

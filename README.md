@@ -1,469 +1,356 @@
-# Street Style Backend API Documentation
+# 🛍️ BK Backend - E-commerce API
 
-This document describes all available API routes, their parameters, request/response types, and authentication requirements.
+Uma API RESTful completa para e-commerce desenvolvida em **Node.js** com **TypeScript**, **Express** e **Prisma ORM**. O projeto implementa um sistema de loja online com funcionalidades de produtos, categorias, carrinho de compras, usuários, pedidos e integração com **Stripe** para pagamentos.
 
----
+## 📋 Índice
 
-## Table of Contents
-- [General](#general)
-- [Banners](#banners)
-- [Products](#products)
-- [Categories](#categories)
-- [Cart](#cart)
-- [User](#user)
-- [Orders](#orders)
-- [Webhooks](#webhooks)
+- [Características](#-características)
+- [Tecnologias](#-tecnologias)
+- [Estrutura do Projeto](#-estrutura-do-projeto)
+- [Instalação](#-instalação)
+- [Configuração](#-configuração)
+- [Uso](#-uso)
+- [API Endpoints](#-api-endpoints)
+- [Modelos de Dados](#-modelos-de-dados)
+- [Integração Stripe](#-integração-stripe)
+- [Scripts Disponíveis](#-scripts-disponíveis)
+- [Contribuição](#-contribuição)
 
----
+## ✨ Características
 
-## General
+- 🏪 **Sistema de E-commerce Completo**: Produtos, categorias, carrinho e pedidos
+- 👤 **Autenticação de Usuários**: Registro, login e gerenciamento de perfis
+- 🏠 **Gerenciamento de Endereços**: Múltiplos endereços por usuário
+- 💳 **Pagamentos com Stripe**: Checkout seguro e webhooks automáticos
+- 📦 **Sistema de Frete**: Cálculo automático de frete por CEP
+- 🏷️ **Metadados de Produtos**: Sistema flexível de filtros e categorização
+- 📊 **Analytics de Produtos**: Contagem de visualizações e vendas
+- 🔒 **Middleware de Autenticação**: Proteção de rotas sensíveis
+- 🎨 **Upload de Imagens**: Sistema de banners e imagens de produtos
+- 📱 **API RESTful**: Endpoints bem estruturados e documentados
 
-### `GET /ping`
-- **Description:** Health check endpoint.
-- **Auth:** None
-- **Response:**
-  ```json
-  { "pong": true }
-  ```
+## 🛠️ Tecnologias
 
----
+### Backend
 
-## Banners
+- **Node.js** - Runtime JavaScript
+- **TypeScript** - Tipagem estática
+- **Express.js** - Framework web
+- **Prisma ORM** - ORM para banco de dados
+- **PostgreSQL** - Banco de dados relacional
+- **bcryptjs** - Hash de senhas
+- **Stripe** - Processamento de pagamentos
+- **Zod** - Validação de schemas
+- **CORS** - Cross-origin resource sharing
 
-### `GET /banners`
-- **Description:** Get all banners.
-- **Auth:** None
-- **Response:**
-  ```json
-  {
-    "error": null,
-    "banners": [
-      {
-        "img": "media/banners/<filename>",
-        "link": "<url>"
-      }
-    ]
-  }
-  ```
+### Ferramentas de Desenvolvimento
 
----
+- **tsx** - Execução de TypeScript
+- **Prisma Client** - Geração automática de cliente
+- **UUID** - Geração de identificadores únicos
 
-## Products
+## 📁 Estrutura do Projeto
 
-### `GET /products`
-- **Description:** List products with optional filters.
-- **Auth:** None
-- **Query Parameters:**
-  | Name     | Type   | Required | Description                      |
-  | -------- | ------ | -------- | -------------------------------- |
-  | metadata | string | No       | JSON string of metadata filters  |
-  | orderBy  | string | No       | "views", "selling", or "price"   |
-  | limit    | string | No       | Max number of products to return |
-- **Response:**
-  ```json
-  {
-    "error": null,
-    "products": [
-      {
-        "id": 1,
-        "label": "Product Name",
-        "price": 99.99,
-        "image": "media/products/<filename>",
-        "liked": false
-      }
-    ]
-  }
-  ```
+```
+bk-backend/
+├── src/
+│   ├── controllers/          # Controladores das rotas
+│   │   ├── banner.ts        # Gerenciamento de banners
+│   │   ├── cart.ts          # Carrinho de compras
+│   │   ├── category.ts      # Categorias e metadados
+│   │   ├── order.ts         # Pedidos
+│   │   ├── product.ts       # Produtos
+│   │   ├── user.ts          # Usuários e autenticação
+│   │   └── webhook.ts       # Webhooks do Stripe
+│   ├── middleware/          # Middlewares
+│   │   └── auth.ts          # Autenticação JWT
+│   ├── routes/              # Definição de rotas
+│   │   └── main.ts          # Rotas principais
+│   ├── services/            # Lógica de negócio
+│   │   ├── banner.ts        # Serviços de banner
+│   │   ├── category.ts      # Serviços de categoria
+│   │   ├── order.ts         # Serviços de pedido
+│   │   ├── payment.ts       # Serviços de pagamento
+│   │   ├── product.ts       # Serviços de produto
+│   │   └── user.ts          # Serviços de usuário
+│   ├── schemas/             # Schemas de validação
+│   ├── types/               # Definições de tipos
+│   ├── utils/               # Utilitários
+│   ├── generated/           # Código gerado pelo Prisma
+│   └── server.ts            # Arquivo principal do servidor
+├── prisma/
+│   ├── schema.prisma        # Schema do banco de dados
+│   └── seed.ts              # Dados iniciais
+├── public/                  # Arquivos estáticos
+├── package.json
+├── tsconfig.json
+└── README.md
+```
 
-### `GET /product/:id`
-- **Description:** Get a single product by ID.
-- **Auth:** None
-- **Params:**
-  | Name | Type             | Required |
-  | ---- | ---------------- | -------- |
-  | id   | string (numeric) | Yes      |
-- **Response:**
-  ```json
-  {
-    "error": null,
-    "product": {
-      "id": 1,
-      "label": "Product Name",
-      "price": 99.99,
-      "description": "...",
-      "categoryId": 1,
-      "images": ["media/products/<filename>"]
-    },
-    "category": {
-      "id": 1,
-      "name": "Category Name",
-      "slug": "category-slug"
-    }
-  }
-  ```
+## 🚀 Instalação
 
-### `GET /product/:id/related`
-- **Description:** Get related products from the same category.
-- **Auth:** None
-- **Params:**
-  | Name | Type             | Required |
-  | ---- | ---------------- | -------- |
-  | id   | string (numeric) | Yes      |
-- **Query:**
-  | Name  | Type             | Required |
-  | ----- | ---------------- | -------- |
-  | limit | string (numeric) | No       |
-- **Response:**
-  ```json
-  {
-    "error": null,
-    "products": [ ... ]
-  }
-  ```
+### Pré-requisitos
 
----
+- Node.js (versão 18 ou superior)
+- PostgreSQL
+- npm ou yarn
 
-## Categories
+### Passos
 
-### `GET /category/:slug/metadata`
-- **Description:** Get category and its metadata by slug.
-- **Auth:** None
-- **Params:**
-  | Name | Type   | Required |
-  | ---- | ------ | -------- |
-  | slug | string | Yes      |
-- **Response:**
-  ```json
-  {
-    "error": null,
-    "category": {
-      "id": 1,
-      "name": "Category Name",
-      "slug": "category-slug"
-    },
-    "metadata": [
-      {
-        "id": "meta_id",
-        "name": "Meta Name",
-        "values": [
-          { "id": "value_id", "label": "Value Label" }
-        ]
-      }
-    ]
-  }
-  ```
+1. **Clone o repositório**
 
----
+```bash
+git clone <url-do-repositorio>
+cd bk-backend
+```
 
-## Cart
+2. **Instale as dependências**
 
-### `POST /cart/mount`
-- **Description:** Get product details for a list of product IDs.
-- **Auth:** None
-- **Body:**
-  ```json
-  { "ids": [1, 2, 3] }
-  ```
-- **Response:**
-  ```json
-  {
-    "error": null,
-    "products": [
-      {
-        "id": 1,
-        "label": "Product Name",
-        "price": 99.99,
-        "image": "media/products/<filename>"
-      }
-    ]
-  }
-  ```
+```bash
+npm install
+```
 
-### `GET /cart/shipping`
-- **Description:** Calculate shipping cost and days for a zipcode.
-- **Auth:** None
-- **Query:**
-  | Name    | Type   | Required |
-  | ------- | ------ | -------- |
-  | zipcode | string | Yes      |
-- **Response:**
-  ```json
-  {
-    "error": null,
-    "zipcode": "12345-678",
-    "cost": 7,
-    "days": 3
-  }
-  ```
+3. **Configure o banco de dados**
 
-### `POST /cart/finish`
-- **Description:** Finish the cart and create an order (returns Stripe checkout URL).
-- **Auth:** Yes (Bearer token)
-- **Body:**
-  ```json
-  {
-    "cart": [
-      { "productId": 1, "quantity": 2 }
-    ],
-    "addressId": 1
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "error": null,
-    "url": "https://checkout.stripe.com/..."
-  }
-  ```
+```bash
+# Crie um banco PostgreSQL e configure a URL de conexão
+# Exemplo: postgresql://usuario:senha@localhost:5432/bk_backend
+```
 
----
+4. **Execute as migrações do Prisma**
 
-## User
+```bash
+npx prisma migrate dev
+```
 
-### `POST /user/register`
-- **Description:** Register a new user.
-- **Auth:** None
-- **Body:**
-  ```json
-  {
-    "name": "User Name",
-    "email": "user@email.com",
-    "password": "password123"
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "error": null,
-    "user": {
-      "id": 1,
-      "name": "User Name",
-      "email": "user@email.com"
-    }
-  }
-  ```
+5. **Popule o banco com dados iniciais**
 
-### `POST /user/login`
-- **Description:** Login and receive a token.
-- **Auth:** None
-- **Body:**
-  ```json
-  {
-    "email": "user@email.com",
-    "password": "password123"
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "error": null,
-    "token": "<uuid>"
-  }
-  ```
+```bash
+npm run db:seed
+```
 
-### `GET /user/addresses`
-- **Description:** Get all addresses for the logged-in user.
-- **Auth:** Yes (Bearer token)
-- **Response:**
-  ```json
-  {
-    "error": null,
-    "addresses": [
-      {
-        "id": 1,
-        "zipcode": "12345-678",
-        "street": "Street Name",
-        "number": "123",
-        "city": "City",
-        "state": "State",
-        "country": "Country",
-        "complement": "Apt 1"
-      }
-    ]
-  }
-  ```
+## ⚙️ Configuração
 
-### `POST /user/addresses`
-- **Description:** Add a new address for the logged-in user.
-- **Auth:** Yes (Bearer token)
-- **Body:**
-  ```json
-  {
-    "zipcode": "12345-678",
-    "street": "Street Name",
-    "number": "123",
-    "city": "City",
-    "state": "State",
-    "country": "Country",
-    "complement": "Apt 1"
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "error": null,
-    "address": {
-      "id": 1,
-      "zipcode": "12345-678",
-      "street": "Street Name",
-      "number": "123",
-      "city": "City",
-      "state": "State",
-      "country": "Country",
-      "complement": "Apt 1"
-    }
-  }
-  ```
+### Variáveis de Ambiente
 
----
+Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
 
-## Orders
+```env
+# Banco de Dados
+DATABASE_URL="postgresql://usuario:senha@localhost:5432/bk_backend"
 
-### `GET /orders`
-- **Description:** List all orders for the logged-in user.
-- **Auth:** Yes (Bearer token)
-- **Response:**
-  ```json
-  {
-    "error": null,
-    "orders": [
-      {
-        "id": 1,
-        "status": "pending",
-        "total": 199.99,
-        "createdAt": "2024-07-24T18:49:43.000Z"
-      }
-    ]
-  }
-  ```
+# Servidor
+PORT=4000
 
-### `GET /orders/:id`
-- **Description:** Get details of a specific order by ID for the logged-in user.
-- **Auth:** Yes (Bearer token)
-- **Params:**
-  | Name | Type             | Required |
-  | ---- | ---------------- | -------- |
-  | id   | string (numeric) | Yes      |
-- **Response:**
-  ```json
-  {
-    "error": null,
-    "order": {
-      "id": 1,
-      "status": "pending",
-      "total": 199.99,
-      "shippingCost": 7,
-      "shippingDays": 3,
-      "shippingZipcode": "12345-678",
-      "shippingStreet": "Street Name",
-      "shippingNumber": "123",
-      "shippingCity": "City",
-      "shippingState": "State",
-      "shippingCountry": "Country",
-      "shippingComplement": "Apt 1",
-      "createdAt": "2024-07-24T18:49:43.000Z",
-      "orderItems": [
-        {
-          "id": 1,
-          "quantity": 2,
-          "price": 99.99,
-          "product": {
-            "id": 1,
-            "label": "Product Name",
-            "price": 99.99,
-            "image": "media/products/<filename>"
-          }
-        }
-      ]
-    }
-  }
-  ```
+# Stripe (para pagamentos)
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
 
-### `GET /orders/session`
-- **Description:** Get order ID by Stripe session ID.
-- **Auth:** None
-- **Query:**
-  | Name       | Type   | Required | Description                |
-  | ---------- | ------ | -------- | -------------------------- |
-  | session_id | string | Yes      | Stripe checkout session ID |
-- **Response:**
-  ```json
-  {
-    "error": null,
-    "orderId": 123
-  }
-  ```
+# JWT (opcional, se implementado)
+JWT_SECRET=sua_chave_secreta_jwt
+```
 
----
+### Configuração do Stripe
 
-## Webhooks
+1. Crie uma conta no [Stripe](https://stripe.com)
+2. Obtenha suas chaves de API (test/live)
+3. Configure o webhook no dashboard do Stripe:
+   - URL: `https://seu-dominio.com/webhook/stripe`
+   - Eventos: `checkout.session.completed`, `checkout.session.expired`, `payment_intent.payment_failed`
 
-### `POST /webhook/stripe`
-- **Description:** Handle Stripe payment events and update order statuses.
-- **Auth:** None (verified via Stripe signature)
-- **Purpose:** Processes Stripe webhook events to automatically update order statuses
-- **Supported Events:**
-  - `checkout.session.completed` - Marks order as `paid`
-  - `checkout.session.expired` - Marks order as `expired`
-  - `payment_intent.payment_failed` - Marks order as `failed`
-- **Order Status Values:**
-  - `pending` - Order created, waiting for payment
-  - `paid` - Payment completed successfully
-  - `expired` - Checkout session expired
-  - `failed` - Payment failed
+## 🎯 Uso
 
----
+### Desenvolvimento
 
-## Authentication
+```bash
+npm run dev
+```
 
-Some endpoints require authentication via a Bearer token. Pass the token in the `Authorization` header:
+O servidor será iniciado em `http://localhost:4000`
+
+### Produção
+
+```bash
+# Compile o TypeScript
+npx tsc
+
+# Execute o servidor
+node dist/server.js
+```
+
+## 📡 API Endpoints
+
+### 🏥 Health Check
+
+- `GET /ping` - Verificação de saúde da API
+
+### 🎨 Banners
+
+- `GET /banners` - Lista todos os banners
+
+### 🛍️ Produtos
+
+- `GET /products` - Lista produtos (com filtros opcionais)
+- `GET /product/:id` - Detalhes de um produto
+- `GET /product/:id/related` - Produtos relacionados
+
+### 📂 Categorias
+
+- `GET /category/:slug/metadata` - Metadados de uma categoria
+
+### 🛒 Carrinho
+
+- `POST /cart/mount` - Monta carrinho com produtos
+- `GET /cart/shipping` - Calcula frete por CEP
+- `POST /cart/finish` - Finaliza compra (requer autenticação)
+
+### 👤 Usuários
+
+- `POST /user/register` - Registro de usuário
+- `POST /user/login` - Login de usuário
+- `GET /user/addresses` - Lista endereços (requer autenticação)
+- `POST /user/addresses` - Adiciona endereço (requer autenticação)
+
+### 📦 Pedidos
+
+- `GET /orders` - Lista pedidos do usuário (requer autenticação)
+- `GET /orders/:id` - Detalhes de um pedido (requer autenticação)
+- `GET /orders/session` - Busca pedido por session ID do Stripe
+
+### 🔗 Webhooks
+
+- `POST /webhook/stripe` - Webhook do Stripe para atualizar status de pedidos
+
+## 🗄️ Modelos de Dados
+
+### Principais Entidades
+
+- **User**: Usuários do sistema
+- **UserAddress**: Endereços dos usuários
+- **Product**: Produtos da loja
+- **ProductImage**: Imagens dos produtos
+- **ProductMetadata**: Metadados/filtros dos produtos
+- **Category**: Categorias de produtos
+- **CategoryMetadata**: Metadados das categorias
+- **MetadataValue**: Valores possíveis para metadados
+- **Order**: Pedidos dos usuários
+- **OrderProduct**: Itens dos pedidos
+- **Banner**: Banners promocionais
+
+### Relacionamentos
+
+- Usuário → Múltiplos endereços
+- Usuário → Múltiplos pedidos
+- Categoria → Múltiplos produtos
+- Produto → Múltiplas imagens
+- Produto → Múltiplos metadados
+- Pedido → Múltiplos itens de produto
+
+## 💳 Integração Stripe
+
+### Funcionalidades
+
+- **Checkout Session**: Criação de sessões de pagamento
+- **Webhooks**: Atualização automática de status de pedidos
+- **Eventos Suportados**:
+  - `checkout.session.completed` → Status: `paid`
+  - `checkout.session.expired` → Status: `expired`
+  - `payment_intent.payment_failed` → Status: `failed`
+
+### Fluxo de Pagamento
+
+1. Cliente finaliza carrinho
+2. API cria sessão no Stripe
+3. Cliente é redirecionado para checkout
+4. Stripe processa pagamento
+5. Webhook atualiza status do pedido
+
+## 📜 Scripts Disponíveis
+
+```bash
+# Desenvolvimento
+npm run dev          # Inicia servidor em modo desenvolvimento
+
+# Banco de Dados
+npm run db:seed      # Popula banco com dados iniciais
+npx prisma studio    # Interface visual do banco
+npx prisma migrate dev  # Executa migrações
+npx prisma generate  # Gera cliente Prisma
+```
+
+## 🔒 Autenticação
+
+O sistema utiliza autenticação baseada em tokens. Endpoints protegidos requerem o header:
 
 ```
 Authorization: Bearer <token>
 ```
 
----
+## 📊 Dados Iniciais
 
-## Error Handling
+O seed do banco inclui:
 
-All endpoints return an `error` field. If the request is successful, `error` is `null`. Otherwise, it contains an error message.
+- 1 categoria: "Camisas"
+- 4 produtos de exemplo (React, React Native, Python, PHP)
+- 2 banners promocionais
+- Metadados de tecnologia para filtros
+- Imagens de exemplo para produtos
 
----
+## 🚀 Deploy
 
-## Data Models
-
-See `prisma/schema.prisma` for full database models.
-
----
-
-## Stripe Webhook Setup
-
-The application includes a Stripe webhook endpoint to handle payment events and automatically update order statuses.
-
-### Environment Variables Required
-
-Add these environment variables to your `.env` file:
+### Variáveis de Ambiente para Produção
 
 ```env
-STRIPE_SECRET_KEY=your_stripe_secret_key
-STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
+DATABASE_URL="postgresql://..."
+STRIPE_SECRET_KEY="sk_live_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+PORT=4000
+NODE_ENV=production
 ```
 
-### Setting up the Webhook in Stripe Dashboard
+### Comandos de Deploy
 
-1. Go to your Stripe Dashboard
-2. Navigate to Developers > Webhooks
-3. Click "Add endpoint"
-4. Set the endpoint URL to: `https://your-domain.com/webhook/stripe`
-5. Select the following events:
-   - `checkout.session.completed`
-   - `checkout.session.expired`
-   - `payment_intent.payment_failed`
-6. Copy the webhook signing secret and add it to your environment variables as `STRIPE_WEBHOOK_SECRET`
+```bash
+# Instalar dependências
+npm ci
 
-### Security
+# Executar migrações
+npx prisma migrate deploy
 
-The webhook endpoint verifies the Stripe signature to ensure requests are legitimate. Make sure to:
-- Keep your `STRIPE_WEBHOOK_SECRET` secure
-- Use HTTPS in production
-- Never expose the webhook secret in client-side code 
+# Popular banco (se necessário)
+npm run db:seed
+
+# Iniciar aplicação
+npm start
+```
+
+## 🧪 Testes
+
+Para implementar testes, considere:
+
+- **Jest** para testes unitários
+- **Supertest** para testes de API
+- **Prisma Test Environment** para testes de banco
+
+## 📈 Monitoramento
+
+Recomendações para produção:
+
+- **Logs estruturados** (Winston/Pino)
+- **Métricas de performance** (Prometheus)
+- **Health checks** avançados
+- **Rate limiting** (express-rate-limit)
+
+## 🤝 Contribuição
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## 📝 Licença
+
+Este projeto está sob a licença ISC. Veja o arquivo `package.json` para mais detalhes.
+
+**Desenvolvido com ❤️ usando Node.js, TypeScript e Prisma**
